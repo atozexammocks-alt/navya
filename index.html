@@ -3,48 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NAVYA — Institute OS</title>
+<title>NAVYA — Institute Management Platform</title>
 <style>
-:root{--bg:#f6f8fc;--card:#fff;--text:#152033;--muted:#667085;--line:#e7eaf0;--brand:#4f46e5;--brand2:#7c3aed}
+:root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;--line:#e4e7ec;--brand:#4f46e5;--soft:#eef2ff}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
-.top{padding:18px 28px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
-.logo{font-size:25px;font-weight:800;letter-spacing:.08em}.tag{color:var(--muted);font-size:13px}
-.hero{max-width:1180px;margin:0 auto;padding:58px 24px 30px}.hero h1{font-size:clamp(34px,6vw,62px);line-height:1.02;margin:0 0 18px}.hero p{max-width:720px;color:var(--muted);font-size:18px;line-height:1.65}.btn{border:0;border-radius:12px;padding:12px 17px;font-weight:700;cursor:pointer;background:var(--brand);color:#fff}
-.grid{max-width:1180px;margin:20px auto 60px;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 8px 28px rgba(16,24,40,.04)}.card h3{margin:0 0 8px}.card p{margin:0;color:var(--muted);line-height:1.5;font-size:14px}
-.badge{display:inline-block;padding:6px 9px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:700;margin-bottom:12px}
-.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.58);align-items:center;justify-content:center;padding:20px}.modal.open{display:flex}.modalbox{background:#fff;max-width:520px;width:100%;border-radius:20px;padding:26px}.modalbox h2{margin-top:0}.close{float:right;border:0;background:#f2f4f7;border-radius:9px;padding:7px 10px;cursor:pointer}.note{background:#f8fafc;border:1px solid var(--line);padding:14px;border-radius:12px;color:var(--muted);font-size:14px;line-height:1.55}
+.top{padding:18px 32px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.logo{font-size:26px;font-weight:850;letter-spacing:.1em}.tag{color:var(--muted);font-size:13px;margin-top:2px}.top-actions{display:flex;gap:10px}.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:700;cursor:pointer}.primary{background:var(--brand);color:#fff}.secondary{background:var(--soft);color:#3730a3}
+.main{max-width:1240px;margin:0 auto;padding:48px 24px}.layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(340px,.65fr);gap:54px;align-items:center}
+.badge{display:inline-block;padding:7px 10px;border-radius:999px;background:var(--soft);color:#4338ca;font-size:12px;font-weight:800;margin-bottom:18px}h1{font-size:clamp(38px,5vw,64px);line-height:1.04;letter-spacing:-.035em;margin:0 0 18px;max-width:760px}.lead{font-size:18px;line-height:1.65;color:var(--muted);max-width:760px;margin:0 0 28px}
+.benefits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:25px}.benefit{background:#fff;border:1px solid var(--line);border-radius:15px;padding:16px}.benefit strong{display:block;margin-bottom:5px}.benefit span{font-size:13px;color:var(--muted);line-height:1.45}
+.login{background:#fff;border:1px solid var(--line);border-radius:22px;padding:28px;box-shadow:0 18px 45px rgba(16,24,40,.08)}.login h2{margin:0 0 7px;font-size:25px}.login p{margin:0 0 22px;color:var(--muted);font-size:14px;line-height:1.5}label{display:block;font-size:13px;font-weight:700;margin:14px 0 7px}input{width:100%;padding:13px 14px;border:1px solid #d0d5dd;border-radius:10px;font:inherit;outline:none}input:focus{border-color:var(--brand);box-shadow:0 0 0 3px #eef2ff}.login .primary{width:100%;margin-top:18px;padding:13px}.forgot{text-align:right;margin-top:10px;font-size:12px;color:#4f46e5;cursor:pointer}.divider{display:flex;align-items:center;gap:10px;color:#98a2b3;font-size:12px;margin:22px 0}.divider:before,.divider:after{content:"";height:1px;background:var(--line);flex:1}.register{width:100%;padding:12px;background:#fff;border:1px solid #cfd4dc;color:#344054;border-radius:10px;font-weight:750;cursor:pointer}.small{text-align:center;font-size:12px;color:var(--muted);margin-top:17px}
+.bottom{max-width:1240px;margin:0 auto;padding:0 24px 42px}.strip{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;justify-content:space-between;gap:20px;align-items:center}.strip h3{margin:0 0 5px}.strip p{margin:0;color:var(--muted);font-size:14px}.roles{display:flex;gap:8px;flex-wrap:wrap}.role{padding:7px 10px;background:#f8fafc;border:1px solid var(--line);border-radius:999px;font-size:12px;font-weight:700;color:#475467}
+@media(max-width:850px){.layout{grid-template-columns:1fr;gap:30px}.benefits{grid-template-columns:1fr}.top{padding:16px 18px}.top-actions .secondary{display:none}.main{padding:35px 18px}.bottom{padding:0 18px 30px}.strip{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
-<header class="top"><div><div class="logo">NAVYA</div><div class="tag">Institute Operating System</div></div><button class="btn" onclick="openVideo()">Video option</button></header>
-<section class="hero">
-<span class="badge">Foundation build started</span>
-<h1>One digital system for the complete institute.</h1>
-<p>NAVYA is being built as a secure multi-tenant platform for schools, coaching institutes, colleges, universities and training centres — combining academics, exams, administration, communication, analytics and AI.</p>
-</section>
-<section class="grid">
-<div class="card"><h3>🏫 Organizations</h3><p>Separate workspace, branding, users and data for every institute.</p></div>
-<div class="card"><h3>👩‍🏫 Teachers</h3><p>Classes, questions, tests, assignments, content and teacher workspace.</p></div>
-<div class="card"><h3>🎓 Students</h3><p>Learning, exams, results, attendance, homework and progress.</p></div>
-<div class="card"><h3>📚 Library</h3><p>Private → department → institute → group → central → marketplace.</p></div>
-<div class="card"><h3>📝 Exams</h3><p>Question Bank, Test Builder, Paper Designer, online exams and results.</p></div>
-<div class="card"><h3>🤖 AI</h3><p>Question generation, extraction, solutions, analytics and assistant tools.</p></div>
-<div class="card"><h3>📊 Analytics</h3><p>Student, teacher and institute-level performance insights.</p></div>
-<div class="card"><h3>💼 Operations</h3><p>Attendance, admissions, communication, finance, HR and documents.</p></div>
-</section>
-
-<div class="modal" id="videoModal" onclick="if(event.target===this)closeVideo()">
-<div class="modalbox">
-<button class="close" onclick="closeVideo()">✕</button>
-<h2>Institute Videos</h2>
-<p>Video support is part of NAVYA's architecture.</p>
-<div class="note"><b>Initial approach:</b> institutes can add supported external video links (such as YouTube) and NAVYA will display them inside the institute's video area. NAVYA does not need to store every video itself.</div>
-<p class="note" style="margin-top:12px"><b>Future option:</b> direct video upload/storage can be enabled as a premium feature when required.</p>
-</div>
-</div>
+<header class="top"><div><div class="logo">NAVYA</div><div class="tag">Institute Management Platform</div></div><div class="top-actions"><button class="btn secondary" onclick="registerInstitute()">Register Institute</button><button class="btn primary" onclick="focusLogin()">Login</button></div></header>
+<main class="main"><div class="layout">
+<section>
+<span class="badge">Built for Schools • Coaching • Colleges • Universities • Training Centres</span>
+<h1>Your institute. One secure digital system.</h1>
+<p class="lead">NAVYA helps organizations manage academics, people, examinations, communication, operations, analytics and AI from one connected platform. Students and teachers use NAVYA through their institute.</p>
+<div class="benefits">
+<div class="benefit"><strong>🏫 Complete Institute Management</strong><span>Manage your institute's academic and administrative work from one place.</span></div>
+<div class="benefit"><strong>👩‍🏫 Teacher & Staff Workspace</strong><span>Classes, assignments, tests, content, attendance and academic tasks.</span></div>
+<div class="benefit"><strong>🎓 Student Management</strong><span>Student records, learning, attendance, exams, results and progress.</span></div>
+<div class="benefit"><strong>📚 Digital Library & Question Bank</strong><span>Organize questions, study material and institute-owned academic resources.</span></div>
+<div class="benefit"><strong>📝 Exams & Assessments</strong><span>Create tests, papers and online exams with results and analysis.</span></div>
+<div class="benefit"><strong>📊 Analytics & Reports</strong><span>Understand student, teacher, batch and institute performance.</span></div>
+<div class="benefit"><strong>📢 Communication</strong><span>Keep your organization connected with notices and academic communication.</span></div>
+<div class="benefit"><strong>🤖 AI Academic Tools</strong><span>Use AI for question creation, extraction, solutions and future academic workflows.</span></div>
+<div class="benefit"><strong>💼 Institute Operations</strong><span>Attendance, admissions, finance, HR, documents and other operations.</span></div>
+<div class="benefit"><strong>🔐 Private Organization Data</strong><span>Your institute gets its own protected workspace and organization-level access controls.</span></div>
+</div></section>
+<aside class="login" id="loginBox"><h2>Institute Login</h2><p>Sign in to your NAVYA organization account. Teachers and students access NAVYA through their organization.</p>
+<label for="identity">Email / Mobile</label><input id="identity" type="text" placeholder="Enter registered email or mobile">
+<label for="password">Password / PIN</label><input id="password" type="password" placeholder="Enter password or PIN">
+<div class="forgot">Forgot password / PIN?</div><button class="btn primary" onclick="login()">Login to NAVYA</button>
+<div class="divider">NEW ORGANIZATION</div><button class="register" onclick="registerInstitute()">Create / Register Your Institute</button>
+<div class="small">By continuing, you agree to your organization's NAVYA access policies.</div></aside>
+</div></main>
+<section class="bottom"><div class="strip"><div><h3>One organization. One connected platform.</h3><p>NAVYA is designed around the institute first — students and teachers work inside their organization's workspace.</p></div><div class="roles"><span class="role">Owner</span><span class="role">Admin</span><span class="role">HOD</span><span class="role">Teacher</span><span class="role">Student</span><span class="role">Parent</span></div></div></section>
 <script>
-function openVideo(){document.getElementById('videoModal').classList.add('open')}
-function closeVideo(){document.getElementById('videoModal').classList.remove('open')}
+function focusLogin(){document.getElementById('identity').focus();document.getElementById('loginBox').scrollIntoView({behavior:'smooth',block:'center'})}
+function registerInstitute(){alert('Institute registration will be connected to NAVYA authentication and organization setup in the next build step.')}
+function login(){alert('NAVYA authentication will be connected in the next build step.')}
 </script>
-</body>
-</html>
+</body></html>
