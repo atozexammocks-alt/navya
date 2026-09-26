@@ -12,7 +12,7 @@ header{height:70px;background:#fff;border-bottom:1px solid var(--line);display:f
 </style>
 </head>
 <body>
-<header><div><div class="logo">NAVYA</div><div style="font-size:11px;color:#98a2b3">INSTITUTE MANAGEMENT PLATFORM</div></div><div class="user">Institute Owner <button class="secondary" onclick="logout()">Logout</button></div></header>
+<header><div><div class="logo">NAVYA</div><div style="font-size:11px;color:#98a2b3">INSTITUTE MANAGEMENT PLATFORM</div></div><div class="user"><span id="orgName">Institute</span> • <span id="role">Owner</span> <button class="secondary" onclick="NAVYA.logout()">Logout</button></div></header>
 <div class="layout">
 <aside><div class="navtitle">Institute</div><div class="nav active">🏠 Dashboard</div><div class="nav">🏫 Organization Profile</div><div class="nav">👩‍🏫 Teachers & Staff</div><div class="nav">🎓 Students</div><div class="nav">📚 Academics</div><div class="nav">📝 Exams</div><div class="nav">📊 Analytics</div><div class="nav">📅 Attendance</div><div class="nav">📢 Communication</div><div class="nav">💰 Finance</div><div class="nav">⚙️ Settings</div></aside>
 <main class="main">
@@ -38,5 +38,5 @@ header{height:70px;background:#fff;border-bottom:1px solid var(--line);display:f
 <div class="card" style="grid-column:1/-1"><h2>⚡ Quick Actions</h2><p>Common actions for an institute owner/admin.</p><div class="quick"><button onclick="alert('Add Teacher')">+ Teacher</button><button onclick="alert('Add Student')">+ Student</button><button onclick="alert('Create Class')">+ Class / Batch</button><button onclick="alert('Create Test')">+ Test</button><button onclick="alert('Open Library')">📚 Library</button></div></div>
 </div>
 </main></div>
-<script>function logout(){alert('Logout will be connected to NAVYA authentication.')}</script>
-</body></html>
+<script>function logout(){NAVYA.logout()}</script>
+<script src="navya_core.js"></script><script>const s=NAVYA.requireSession();if(s){const o=NAVYA.organization();document.getElementById('orgName').textContent=o?.name||'Institute';document.getElementById('role').textContent=s.role;}</script></body></html>
