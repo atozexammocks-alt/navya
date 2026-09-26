@@ -38,14 +38,14 @@
 <aside class="login" id="loginBox"><h2>Institute Login</h2><p>Sign in to your NAVYA organization account. Teachers and students access NAVYA through their organization.</p>
 <label for="identity">Email / Mobile</label><input id="identity" type="text" placeholder="Enter registered email or mobile">
 <label for="password">Password / PIN</label><input id="password" type="password" placeholder="Enter password or PIN">
-<div class="forgot">Forgot password / PIN?</div><button class="btn primary" onclick="login()">Login to NAVYA</button>
+<div class="forgot">Forgot password / PIN?</div><div id="loginError" style="display:none;margin-top:10px;padding:10px;border-radius:9px;background:#fef3f2;color:#b42318;font-size:12px"></div><button class="btn primary" onclick="login()">Login to NAVYA</button>
 <div class="divider">NEW ORGANIZATION</div><button class="register" onclick="registerInstitute()">Create / Register Your Institute</button>
 <div class="small">By continuing, you agree to your organization's NAVYA access policies.</div></aside>
 </div></main>
 <section class="bottom"><div class="strip"><div><h3>One organization. One connected platform.</h3><p>NAVYA is designed around the institute first — students and teachers work inside their organization's workspace.</p></div><div class="roles"><span class="role">Owner</span><span class="role">Admin</span><span class="role">HOD</span><span class="role">Teacher</span><span class="role">Student</span><span class="role">Parent</span></div></div></section>
-<script>
+<script src="navya_core.js"></script><script>
 function focusLogin(){document.getElementById('identity').focus();document.getElementById('loginBox').scrollIntoView({behavior:'smooth',block:'center'})}
 function registerInstitute(){location.href='auth.html?mode=register'}
-function login(){location.href='auth.html?mode=login'}
+function login(){const e=document.getElementById('identity'),p=document.getElementById('password'),box=document.getElementById('loginError');const r=NAVYA.login(e.value,p.value);if(!r.ok){box.textContent=r.error;box.style.display='block';return}box.style.display='none';location.href='institute_dashboard.html'}
 </script>
 </body></html>
