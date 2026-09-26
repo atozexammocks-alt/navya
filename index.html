@@ -45,7 +45,7 @@
 <section class="bottom"><div class="strip"><div><h3>One organization. One connected platform.</h3><p>NAVYA is designed around the institute first — students and teachers work inside their organization's workspace.</p></div><div class="roles"><span class="role">Owner</span><span class="role">Admin</span><span class="role">HOD</span><span class="role">Teacher</span><span class="role">Student</span><span class="role">Parent</span></div></div></section>
 <script>
 function focusLogin(){document.getElementById('identity').focus();document.getElementById('loginBox').scrollIntoView({behavior:'smooth',block:'center'})}
-function registerInstitute(){alert('Institute registration will be connected to NAVYA authentication and organization setup in the next build step.')}
-function login(){alert('NAVYA authentication will be connected in the next build step.')}
+function registerInstitute(){location.href='auth.html?mode=register'}
+function login(){location.href='auth.html?mode=login'}
 </script>
 </body></html>
