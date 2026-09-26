@@ -1,7 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() { return request.auth != null; }
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
     function isSuper() { return signedIn() && request.auth.token.email == 'vikasattri3003@gmail.com'; }
     function myUser() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
     function sameOrg(orgId) { return signedIn() && (isSuper() || myUser().organizationId == orgId); }
