@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isSuper() { return signedIn() && request.auth.token.email == 'vikasattri3003@gmail.com'; }
+    function myUser() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function sameOrg(orgId) { return signedIn() && (isSuper() || myUser().organizationId == orgId); }
+    function canManageOrg(orgId) {
+      return signedIn() && (isSuper() || (myUser().organizationId == orgId && myUser().role in ['OWNER','ADMIN','HOD']));
+    }
+
+    match /organizations/{orgId} {
+      allow read: if sameOrg(orgId);
+      allow create: if signedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.status == 'ACTIVE';
+      allow update: if isSuper() || (sameOrg(orgId) && myUser().role == 'OWNER');
+      allow delete: if isSuper();
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && (uid == request.auth.uid || isSuper() || sameOrg(resource.data.organizationId));
+      allow create: if signedIn() && (
+        uid == request.auth.uid ||
+        canManageOrg(request.resource.data.organizationId)
+      );
+      allow update: if signedIn() && (
+        uid == request.auth.uid ||
+        canManageOrg(resource.data.organizationId)
+      );
+      allow delete: if isSuper() || (signedIn() && canManageOrg(resource.data.organizationId));
+    }
+
+    match /auditLogs/{id} {
+      allow read: if isSuper() || (signedIn() && sameOrg(resource.data.organizationId));
+      allow create: if signedIn() && (isSuper() || sameOrg(request.resource.data.organizationId));
+      allow update, delete: if isSuper();
+    }
+
+    // All future NAVYA collections must carry organizationId for tenant-scoped data.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
