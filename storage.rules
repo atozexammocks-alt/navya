@@ -1,24 +1,16 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    function signedIn() { return request.auth != null; }
-    function isSuper() { return signedIn() && request.auth.token.email == 'vikasattri3003@gmail.com'; }
-    function orgFromPath(orgId) {
-      return signedIn() && (isSuper() || firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.organizationId == orgId);
+    function verified() { return request.auth != null && request.auth.token.email_verified == true; }
+    function superAdmin() { return verified() && request.auth.token.email == 'vikasattri3003@gmail.com'; }
+    function sameOrg(id) { return verified() && (superAdmin() || firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.organizationId == id); }
+    function role(r) { return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == r; }
+    match /organizations/{id}/{allPaths=**} {
+      allow read: if sameOrg(id);
+      allow write: if sameOrg(id) && (superAdmin() || role('OWNER') || role('ADMIN') || role('HOD') || role('TEACHER'));
+      allow delete: if sameOrg(id) && (superAdmin() || role('OWNER') || role('ADMIN'));
     }
-
-    match /organizations/{orgId}/{allPaths=**} {
-      allow read: if orgFromPath(orgId);
-      allow write: if orgFromPath(orgId) && (isSuper() || firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['OWNER','ADMIN','HOD','TEACHER']);
-      allow delete: if orgFromPath(orgId) && (isSuper() || firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role in ['OWNER','ADMIN']);
-    }
-
-    match /central/{allPaths=**} {
-      allow read, write: if isSuper();
-    }
-
-    match /{allPaths=**} {
-      allow read, write: if false;
-    }
+    match /central/{allPaths=**} { allow read, write: if superAdmin(); }
+    match /{allPaths=**} { allow read, write: if false; }
   }
 }
