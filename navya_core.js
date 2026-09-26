@@ -1,39 +1,59 @@
-/* NAVYA CORE — prototype foundation. Production must move auth/authorization to a server/database. */
+/* NAVYA CORE — Firebase-backed authentication/session foundation. Tenant authorization is enforced by Firebase Rules. */
 (function(){
-const U='navya_users_v2',S='navya_session_v2',O='navya_orgs_v2',P='navya_super_pin_v1';
+const U='navya_users_v2',S='navya_session_v2',O='navya_orgs_v2';
 const R=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(f))}catch{return f}},W=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const N=v=>String(v||'').trim().toLowerCase(),ID=p=>p+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
 const SUPER_EMAIL='vikasattri3003@gmail.com';
+let fb=null, auth=null, db=null, storage=null;
+function firebaseReady(){return typeof firebase!=='undefined' && !!window.NAVYA_FIREBASE_CONFIG}
+function initFirebase(){if(fb||!firebaseReady())return false;fb=firebase.initializeApp(window.NAVYA_FIREBASE_CONFIG);auth=firebase.auth();db=firebase.firestore();storage=firebase.storage();return true}
 window.NAVYA={
  superEmail:SUPER_EMAIL,
+ firebase(){initFirebase();return{app:fb,auth,db,storage}},
  session(){return R(S,null)},
- logout(){localStorage.removeItem(S);location.href='index.html'},
- organizations(){return R(O,[])},
- users(){return R(U,[])},
- ensureDemoSuperAdmin(){
-  const us=R(U,[]);
-  if(!us.some(x=>N(x.email)===SUPER_EMAIL)){us.push({id:'super_admin_vikas',organizationId:null,role:'SUPER_ADMIN',name:'Vikas Attri',email:SUPER_EMAIL,mobile:'',password:null});W(U,us)}
+ setSession(s){W(S,s);return s},
+ logout(){localStorage.removeItem(S);if(auth)auth.signOut().catch(()=>{});location.href='index.html'},
+ organizations(){return R(O,[])}, users(){return R(U,[])},
+ ensureDemoSuperAdmin(){const us=R(U,[]);if(!us.some(x=>N(x.email)===SUPER_EMAIL)){us.push({id:'super_admin_vikas',organizationId:null,role:'SUPER_ADMIN',name:'Vikas Attri',email:SUPER_EMAIL,mobile:''});W(U,us)}},
+ // Firebase is the real auth source. The old local PIN store is intentionally no longer used.
+ async setupSuperPin(pin){
+  initFirebase(); pin=String(pin||'');
+  if(!/^\\d{6,8}$/.test(pin))return{ok:false,error:'Super Admin PIN must be 6–8 digits.'};
+  try{let user=auth.currentUser;
+   if(!user){try{const c=await auth.createUserWithEmailAndPassword(SUPER_EMAIL,pin);user=c.user}catch(e){if(e.code==='auth/email-already-in-use'){const c=await auth.signInWithEmailAndPassword(SUPER_EMAIL,pin);user=c.user}else throw e}}
+   if(user && !user.emailVerified) await user.sendEmailVerification();
+   return{ok:true,verificationSent:!!(user&&!user.emailVerified)};
+  }catch(e){return{ok:false,error:e.message||'Firebase setup failed.'}}
  },
- superPinSet(){return !!R(P,null)},
- setSuperPin(pin){pin=String(pin||'');if(!/^\d{4,8}$/.test(pin))return{ok:false,error:'PIN must be 4–8 digits.'};W(P,pin);this.ensureDemoSuperAdmin();return{ok:true}},
- loginSuper(pin){this.ensureDemoSuperAdmin();if(!this.superPinSet())return{ok:false,setup:true,error:'Super Admin PIN is not configured yet.'};if(String(pin)!==String(R(P,'')))return{ok:false,error:'Invalid Super Admin PIN.'};const s={userId:'super_admin_vikas',organizationId:null,role:'SUPER_ADMIN',email:SUPER_EMAIL,name:'Vikas Attri'};W(S,s);return{ok:true,session:s}},
+ async loginSuper(pin){
+  initFirebase(); pin=String(pin||''); if(!/^\\d{6,8}$/.test(pin))return{ok:false,error:'Enter the 6–8 digit Super Admin PIN.'};
+  try{const c=await auth.signInWithEmailAndPassword(SUPER_EMAIL,pin);const u=c.user;
+   if(!u.emailVerified){try{await u.sendEmailVerification()}catch{}return{ok:false,verification:true,error:'Verify the Super Admin email first. A verification email has been sent.'}}
+   const s={userId:u.uid,organizationId:null,role:'SUPER_ADMIN',email:u.email,name:'Vikas Attri'};this.setSession(s);return{ok:true,session:s};
+  }catch(e){return{ok:false,error:e.message||'Invalid Super Admin PIN.'}}
+ },
+ superPinSet(){initFirebase();return !!(auth&&auth.currentUser&&auth.currentUser.email===SUPER_EMAIL)},
  findOrganization(q){const x=N(q);return this.organizations().find(o=>N(o.code)===x||N(o.name)===x||N(o.email)===x)||null},
  rolesFor(org){return org?['OWNER','ADMIN','HOD','TEACHER','STUDENT','PARENT','ACCOUNTANT','COUNSELOR']:[]},
- loginOrganization(identity,password,orgQuery,role){
-  const org=this.findOrganization(orgQuery); if(!org)return{ok:false,error:'Institute not found. Use registered institute name/code.'};
-  const u=this.users().find(x=>x.organizationId===org.id&&N(x.email)===N(identity)&&x.password===String(password)&&(!role||x.role===role));
-  if(!u)return{ok:false,error:'Invalid institute login details or role.'};
-  const s={userId:u.id,organizationId:org.id,role:u.role,email:u.email,mobile:u.mobile||'',name:u.name,organizationName:org.name};W(S,s);return{ok:true,session:s,organization:org}
+ async findOrganizationFirebase(q){initFirebase();const x=String(q||'').trim();if(!db)return null;try{let snap=await db.collection('organizations').where('code','==',x.toUpperCase()).limit(1).get();if(!snap.empty)return{id:snap.docs[0].id,...snap.docs[0].data()};snap=await db.collection('organizations').where('name','==',x).limit(1).get();if(!snap.empty)return{id:snap.docs[0].id,...snap.docs[0].data()};return null}catch(e){return null}},
+ async loginOrganization(identity,password,orgQuery,role){
+  initFirebase();if(!auth||!db)return{ok:false,error:'Firebase is not available.'};
+  try{const org=await this.findOrganizationFirebase(orgQuery);if(!org)return{ok:false,error:'Institute not found. Use registered institute name/code.'};
+   let email=String(identity||'').trim();
+   if(!email.includes('@')){const qs=await db.collection('users').where('organizationId','==',org.id).where('mobile','==',email).limit(1).get();if(qs.empty)return{ok:false,error:'Mobile number not found in this institute.'};email=qs.docs[0].data().email}
+   const c=await auth.signInWithEmailAndPassword(email,String(password||''));const u=c.user;
+   if(!u.emailVerified)return{ok:false,verification:true,error:'Please verify your email before logging in.'};
+   const doc=await db.collection('users').doc(u.uid).get();if(!doc.exists)return{ok:false,error:'User profile not found.'};const d=doc.data();
+   if(d.organizationId!==org.id||d.role!==role)return{ok:false,error:'Institute or role access denied.'};
+   const s={userId:u.uid,organizationId:org.id,role:d.role,email:u.email,mobile:d.mobile||'',name:d.name||u.displayName||'',organizationName:org.name};this.setSession(s);return{ok:true,session:s,organization:org};
+  }catch(e){return{ok:false,error:e.message||'Invalid institute login details.'}}
  },
- registerInstitute(d){
-  const us=R(U,[]),os=R(O,[]),e=N(d.email); if(!d.name||!e||!d.password)return{ok:false,error:'Institute name, email and password are required.'};
-  if(us.some(x=>N(x.email)===e))return{ok:false,error:'An account with this email already exists.'};
-  const code=(String(d.name).replace(/[^a-z0-9]/gi,'').slice(0,8).toUpperCase()||'INST')+'-'+Math.floor(1000+Math.random()*9000);
-  const o={id:ID('org'),code,name:String(d.name).trim(),type:d.type||'Institute',email:e,mobile:String(d.mobile||'').trim(),createdAt:new Date().toISOString(),status:'ACTIVE'};
-  const u={id:ID('usr'),organizationId:o.id,role:'OWNER',name:String(d.owner||'Institute Owner').trim(),email:e,mobile:String(d.mobile||'').trim(),password:String(d.password)};
-  os.push(o);us.push(u);W(O,os);W(U,us);const s={userId:u.id,organizationId:o.id,role:u.role,email:u.email,mobile:u.mobile,name:u.name,organizationName:o.name};W(S,s);return{ok:true,session:s,organization:o}
+ async registerInstitute(d){
+  initFirebase();if(!auth||!db)return{ok:false,error:'Firebase is not available.'};
+  const e=N(d.email);if(!d.name||!e||!d.password)return{ok:false,error:'Institute name, email and password are required.'};
+  try{const c=await auth.createUserWithEmailAndPassword(e,String(d.password));const u=c.user;const ref=db.collection('organizations').doc();const code=(String(d.name).replace(/[^a-z0-9]/gi,'').slice(0,8).toUpperCase()||'INST')+'-'+Math.floor(1000+Math.random()*9000);const org={id:ref.id,code,name:String(d.name).trim(),type:d.type||'Institute',email:e,mobile:String(d.mobile||'').trim(),ownerId:u.uid,createdAt:firebase.firestore.FieldValue.serverTimestamp(),status:'ACTIVE'};const profile={id:u.uid,organizationId:ref.id,role:'OWNER',name:String(d.owner||'Institute Owner').trim(),email:e,mobile:String(d.mobile||'').trim(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),status:'ACTIVE'};await ref.set(org);await db.collection('users').doc(u.uid).set(profile);try{await u.sendEmailVerification()}catch{};const s={userId:u.uid,organizationId:ref.id,role:'OWNER',email:e,mobile:profile.mobile,name:profile.name,organizationName:org.name};this.setSession(s);return{ok:true,session:s,organization:{...org,createdAt:new Date().toISOString()},verificationSent:true};
+  }catch(e){return{ok:false,error:e.message||'Institute registration failed.'}}
  },
- addUser(d){const s=this.session();if(!s||s.role==='STUDENT'||s.role==='PARENT')return{ok:false,error:'Permission denied.'};const us=R(U,[]);if(us.some(x=>N(x.email)===N(d.email)&&x.organizationId===s.organizationId))return{ok:false,error:'User already exists.'};const u={id:ID('usr'),organizationId:s.organizationId,role:d.role,name:d.name,email:N(d.email),mobile:d.mobile||'',password:String(d.password||'1234')};us.push(u);W(U,us);return{ok:true,user:u}},
  organization(){const s=this.session();return s?this.findOrganization(s.organizationId):null},
  requireSession(){const s=this.session();if(!s){location.href='access.html';return null}return s},
  requireRole(roles){const s=this.requireSession();if(s&&!roles.includes(s.role)){location.href='access.html?error=permission';return null}return s}
