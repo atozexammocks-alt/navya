@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NAVYA — Institute OS</title>
+<style>
+:root{--bg:#f6f8fc;--card:#fff;--text:#152033;--muted:#667085;--line:#e7eaf0;--brand:#4f46e5;--brand2:#7c3aed}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+.top{padding:18px 28px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:25px;font-weight:800;letter-spacing:.08em}.tag{color:var(--muted);font-size:13px}
+.hero{max-width:1180px;margin:0 auto;padding:58px 24px 30px}.hero h1{font-size:clamp(34px,6vw,62px);line-height:1.02;margin:0 0 18px}.hero p{max-width:720px;color:var(--muted);font-size:18px;line-height:1.65}.btn{border:0;border-radius:12px;padding:12px 17px;font-weight:700;cursor:pointer;background:var(--brand);color:#fff}
+.grid{max-width:1180px;margin:20px auto 60px;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 8px 28px rgba(16,24,40,.04)}.card h3{margin:0 0 8px}.card p{margin:0;color:var(--muted);line-height:1.5;font-size:14px}
+.badge{display:inline-block;padding:6px 9px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:700;margin-bottom:12px}
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.58);align-items:center;justify-content:center;padding:20px}.modal.open{display:flex}.modalbox{background:#fff;max-width:520px;width:100%;border-radius:20px;padding:26px}.modalbox h2{margin-top:0}.close{float:right;border:0;background:#f2f4f7;border-radius:9px;padding:7px 10px;cursor:pointer}.note{background:#f8fafc;border:1px solid var(--line);padding:14px;border-radius:12px;color:var(--muted);font-size:14px;line-height:1.55}
+</style>
+</head>
+<body>
+<header class="top"><div><div class="logo">NAVYA</div><div class="tag">Institute Operating System</div></div><button class="btn" onclick="openVideo()">Video option</button></header>
+<section class="hero">
+<span class="badge">Foundation build started</span>
+<h1>One digital system for the complete institute.</h1>
+<p>NAVYA is being built as a secure multi-tenant platform for schools, coaching institutes, colleges, universities and training centres — combining academics, exams, administration, communication, analytics and AI.</p>
+</section>
+<section class="grid">
+<div class="card"><h3>🏫 Organizations</h3><p>Separate workspace, branding, users and data for every institute.</p></div>
+<div class="card"><h3>👩‍🏫 Teachers</h3><p>Classes, questions, tests, assignments, content and teacher workspace.</p></div>
+<div class="card"><h3>🎓 Students</h3><p>Learning, exams, results, attendance, homework and progress.</p></div>
+<div class="card"><h3>📚 Library</h3><p>Private → department → institute → group → central → marketplace.</p></div>
+<div class="card"><h3>📝 Exams</h3><p>Question Bank, Test Builder, Paper Designer, online exams and results.</p></div>
+<div class="card"><h3>🤖 AI</h3><p>Question generation, extraction, solutions, analytics and assistant tools.</p></div>
+<div class="card"><h3>📊 Analytics</h3><p>Student, teacher and institute-level performance insights.</p></div>
+<div class="card"><h3>💼 Operations</h3><p>Attendance, admissions, communication, finance, HR and documents.</p></div>
+</section>
+
+<div class="modal" id="videoModal" onclick="if(event.target===this)closeVideo()">
+<div class="modalbox">
+<button class="close" onclick="closeVideo()">✕</button>
+<h2>Institute Videos</h2>
+<p>Video support is part of NAVYA's architecture.</p>
+<div class="note"><b>Initial approach:</b> institutes can add supported external video links (such as YouTube) and NAVYA will display them inside the institute's video area. NAVYA does not need to store every video itself.</div>
+<p class="note" style="margin-top:12px"><b>Future option:</b> direct video upload/storage can be enabled as a premium feature when required.</p>
+</div>
+</div>
+<script>
+function openVideo(){document.getElementById('videoModal').classList.add('open')}
+function closeVideo(){document.getElementById('videoModal').classList.remove('open')}
+</script>
+</body>
+</html>
