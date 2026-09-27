@@ -28,9 +28,13 @@ window.NAVYA={
  async loginSuper(pin){
   initFirebase(); pin=String(pin||''); if(!/^\\d{6,8}$/.test(pin))return{ok:false,error:'Enter the 6–8 digit Super Admin PIN.'};
   try{const c=await auth.signInWithEmailAndPassword(SUPER_EMAIL,pin);const u=c.user;
-   if(!u.emailVerified){try{await u.sendEmailVerification()}catch{}return{ok:false,verification:true,error:'Verify the Super Admin email first. A verification email has been sent.'}}
-   const s={userId:u.uid,organizationId:null,role:'SUPER_ADMIN',email:u.email,name:'Vikas Attri'};this.setSession(s);return{ok:true,session:s};
-  }catch(e){return{ok:false,error:e.message||'Invalid Super Admin PIN.'}}
+   if(!u.emailVerified){try{await u.sendEmailVerification()}catch{}return{ok:false,verification:true,error:'Verify the Super Admin email first. A new verification email was sent.'}}
+   const s={userId:u.uid,organizationId:null,role:'SUPER_ADMIN',email:u.email,name:'Vikas Attri'};this.setSession(s);try{await auditEvent('LOGIN','AUTH',u.uid,'Super Admin sign-in')}catch{}return{ok:true,session:s};
+  }catch(e){return{ok:false,code:e.code,error:e.message||'Invalid Super Admin PIN.'}}
+ },
+ async resendVerification(){
+  initFirebase();const u=auth&&auth.currentUser;if(!u)return{ok:false,error:'No signed-in account is available.'};
+  try{await u.sendEmailVerification();return{ok:true}}catch(e){return{ok:false,error:e.message||'Could not send verification email.'}}
  },
  superPinSet(){initFirebase();return !!(auth&&auth.currentUser&&auth.currentUser.email===SUPER_EMAIL)},
  findOrganization(q){const x=N(q);return this.organizations().find(o=>N(o.code)===x||N(o.name)===x||N(o.email)===x)||null},
@@ -45,7 +49,9 @@ window.NAVYA={
    if(!u.emailVerified)return{ok:false,verification:true,error:'Please verify your email before logging in.'};
    const doc=await db.collection('users').doc(u.uid).get();if(!doc.exists)return{ok:false,error:'User profile not found.'};const d=doc.data();
    if(d.organizationId!==org.id||d.role!==role)return{ok:false,error:'Institute or role access denied.'};
-   const s={userId:u.uid,organizationId:org.id,role:d.role,email:u.email,mobile:d.mobile||'',name:d.name||u.displayName||'',organizationName:org.name};this.setSession(s);return{ok:true,session:s,organization:org};
+   if(d.status==='BLOCKED'||d.status==='DISABLED')return{ok:false,error:'This user account is blocked or disabled by the institution.'};
+   if(org.status==='BLOCKED'||org.status==='DISABLED')return{ok:false,error:'This institution is currently blocked or disabled.'};
+   const s={userId:u.uid,organizationId:org.id,role:d.role,email:u.email,mobile:d.mobile||'',name:d.name||u.displayName||'',organizationName:org.name};this.setSession(s);try{await auditEvent('LOGIN','AUTH',u.uid,'Institution sign-in')}catch{}return{ok:true,session:s,organization:org};
   }catch(e){return{ok:false,error:e.message||'Invalid institute login details.'}}
  },
  async registerInstitute(d){
@@ -59,4 +65,12 @@ window.NAVYA={
  requireRole(roles){const s=this.requireSession();if(s&&!roles.includes(s.role)){location.href='access.html?error=permission';return null}return s}
 };
 NAVYA.ensureDemoSuperAdmin();
+async function auditEvent(action,entity,entityId,details){
+  try{initFirebase();const s=NAVYA.session(),u=auth&&auth.currentUser;if(!db||!u||!u.emailVerified||!s)return;await db.collection('auditLogs').add({organizationId:s.organizationId||null,userId:u.uid,actor:s.name||u.email,actorEmail:u.email||'',action,entity,entityId:entityId||null,details:details||'',page:location.pathname||'/',createdAt:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}
+}
+window.NAVYA.auditEvent=auditEvent;
+function trackPageVisit(){
+  try{initFirebase();if(!auth)return;auth.onAuthStateChanged(async u=>{const s=NAVYA.session();if(!u||!s||!u.emailVerified)return;try{await db.collection('auditLogs').add({organizationId:s.organizationId||null,userId:u.uid,actor:s.name||u.email,actorEmail:u.email||'',action:'PAGE_VIEW',entity:'PAGE',details:'Visited '+(document.title||location.pathname),page:location.pathname||'/',createdAt:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}})}catch(e){}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',trackPageVisit);else trackPageVisit();
 })();
