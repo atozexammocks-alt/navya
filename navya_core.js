@@ -18,7 +18,7 @@ window.NAVYA={
  // Firebase is the real auth source. The old local PIN store is intentionally no longer used.
  async setupSuperPin(pin){
   initFirebase(); pin=String(pin||'');
-  if(!/^\\d{6,8}$/.test(pin))return{ok:false,error:'Super Admin PIN must be 6–8 digits.'};
+  if(!/^\d{6,8}$/.test(pin))return{ok:false,error:'Super Admin PIN must be 6–8 digits.'};
   try{let user=auth.currentUser;
    if(!user){try{const c=await auth.createUserWithEmailAndPassword(SUPER_EMAIL,pin);user=c.user}catch(e){if(e.code==='auth/email-already-in-use'){const c=await auth.signInWithEmailAndPassword(SUPER_EMAIL,pin);user=c.user}else throw e}}
    if(user && !user.emailVerified) await user.sendEmailVerification();
@@ -26,7 +26,7 @@ window.NAVYA={
   }catch(e){return{ok:false,error:e.message||'Firebase setup failed.'}}
  },
  async loginSuper(pin){
-  initFirebase(); pin=String(pin||''); if(!/^\\d{6,8}$/.test(pin))return{ok:false,error:'Enter the 6–8 digit Super Admin PIN.'};
+  initFirebase(); pin=String(pin||''); if(!/^\d{6,8}$/.test(pin))return{ok:false,error:'Enter the 6–8 digit Super Admin PIN.'};
   try{const c=await auth.signInWithEmailAndPassword(SUPER_EMAIL,pin);const u=c.user;
    if(!u.emailVerified){try{await u.sendEmailVerification()}catch{}return{ok:false,verification:true,error:'Verify the Super Admin email first. A new verification email was sent.'}}
    const s={userId:u.uid,organizationId:null,role:'SUPER_ADMIN',email:u.email,name:'Vikas Attri'};this.setSession(s);try{await auditEvent('LOGIN','AUTH',u.uid,'Super Admin sign-in')}catch{}return{ok:true,session:s};
@@ -57,7 +57,7 @@ window.NAVYA={
  async registerInstitute(d){
   initFirebase();if(!auth||!db)return{ok:false,error:'Firebase is not available.'};
   const e=N(d.email);if(!d.name||!e||!d.password)return{ok:false,error:'Institute name, email and password are required.'};
-  try{const c=await auth.createUserWithEmailAndPassword(e,String(d.password));const u=c.user;const ref=db.collection('organizations').doc();const code=(String(d.name).replace(/[^a-z0-9]/gi,'').slice(0,8).toUpperCase()||'INST')+'-'+Math.floor(1000+Math.random()*9000);const org={id:ref.id,code,name:String(d.name).trim(),type:d.type||'Institute',email:e,mobile:String(d.mobile||'').trim(),ownerId:u.uid,createdAt:firebase.firestore.FieldValue.serverTimestamp(),status:'ACTIVE'};const profile={id:u.uid,organizationId:ref.id,role:'OWNER',name:String(d.owner||'Institute Owner').trim(),email:e,mobile:String(d.mobile||'').trim(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),status:'ACTIVE'};await ref.set(org);await db.collection('users').doc(u.uid).set(profile);try{await u.sendEmailVerification()}catch{};const s={userId:u.uid,organizationId:ref.id,role:'OWNER',email:e,mobile:profile.mobile,name:profile.name,organizationName:org.name};this.setSession(s);return{ok:true,session:s,organization:{...org,createdAt:new Date().toISOString()},verificationSent:true};
+  try{const c=await auth.createUserWithEmailAndPassword(e,String(d.password));const u=c.user;const ref=db.collection('organizations').doc();const code=(String(d.name).replace(/[^a-z0-9]/gi,'').slice(0,8).toUpperCase()||'INST')+'-'+Math.floor(1000+Math.random()*9000);const org={id:ref.id,code,name:String(d.name).trim(),type:d.type||'Institute',email:e,mobile:String(d.mobile||'').trim(),ownerId:u.uid,createdAt:firebase.firestore.FieldValue.serverTimestamp(),status:'ACTIVE'};const profile={id:u.uid,organizationId:ref.id,role:'OWNER',name:String(d.ownerName||d.owner||'Institute Owner').trim(),email:e,mobile:String(d.phone||d.mobile||'').trim(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),status:'ACTIVE'};await ref.set(org);await db.collection('users').doc(u.uid).set(profile);try{await u.sendEmailVerification()}catch{};const s={userId:u.uid,organizationId:ref.id,role:'OWNER',email:e,mobile:profile.mobile,name:profile.name,organizationName:org.name};this.setSession(s);return{ok:true,session:s,organization:{...org,createdAt:new Date().toISOString()},verificationSent:true};
   }catch(e){return{ok:false,error:e.message||'Institute registration failed.'}}
  },
  organization(){const s=this.session();return s?this.findOrganization(s.organizationId):null},
